@@ -1,0 +1,367 @@
+ 
+options {
+
+  // JavaCC options
+  LOOKAHEAD = 1;
+  IGNORE_CASE = false;
+  STATIC = false;
+  USER_TOKEN_MANAGER=false;
+  USER_CHAR_STREAM=false;
+
+  // JJTree options
+
+  MULTI=true;
+  VISITOR=true;
+  VISITOR_RETURN_TYPE="void";
+  NODE_DEFAULT_VOID = true;
+}
+
+PARSER_BEGIN(MDParser)
+
+package com.zippyrate.dsls.md.parser;
+
+public class MDParser 
+{
+  public String defaultLocationValue = "";
+} 
+
+PARSER_END(MDParser)
+
+/* White space */
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+| "\f"
+}
+
+/* Comments */
+
+MORE :
+{
+  "//" : IN_SINGLE_LINE_COMMENT
+|  <"/**" ~["/"]> { input_stream.backup(1); } : IN_FORMAL_COMMENT
+|  "/*" : IN_MULTI_LINE_COMMENT
+}
+
+<IN_SINGLE_LINE_COMMENT>
+SPECIAL_TOKEN :
+{
+  <SINGLE_LINE_COMMENT: "\n" | "\r" | "\r\n" > : DEFAULT
+}
+
+<IN_FORMAL_COMMENT>
+SPECIAL_TOKEN :
+{
+  <FORMAL_COMMENT: "*/" > : DEFAULT
+}
+
+<IN_MULTI_LINE_COMMENT>
+SPECIAL_TOKEN :
+{
+  <MULTI_LINE_COMMENT: "*/" > : DEFAULT
+}
+
+<IN_SINGLE_LINE_COMMENT,IN_FORMAL_COMMENT,IN_MULTI_LINE_COMMENT>
+MORE :
+{
+  < ~[] >
+}
+
+/* Tokens */
+TOKEN: { <NAMESPACE: "Namespace"> }
+TOKEN: { <PREFIX: "Prefix"> }
+TOKEN: { <ELEMENT: "Element"> }
+TOKEN: { <SUBELEMENT: "SubElement"> }
+
+TOKEN: { <WILDCARD: "*"> }
+
+TOKEN: { <RDF_ID: "rdf:ID"> }
+TOKEN: { <RDFS_LABEL: "rdfs:label"> }
+
+TOKEN: { <XML_LANG: "xml:lang" > }
+
+TOKEN: { <RDFS_CLASS: "rdfs:class"> }
+TOKEN: { <RDF_PROPERTY: "rdf:property"> }
+
+TOKEN: { <OWL_CLASS: "Class" | "owl:Class"> }
+TOKEN: { <OWL_INDIVIDUAL: "Individual" | "owl:Individual"> }
+TOKEN: { <OWL_OBJECT_PROPERTY: "ObjectProperty" | "owl:ObjectProperty"> }
+TOKEN: { <OWL_DATA_PROPERTY: "DataProperty" | "owl:DataProperty" > }
+
+/* Expression tokens */
+
+TOKEN: {<SOME: "Some" >}
+TOKEN: {<ONLY: "Only" >}
+TOKEN: {<VALUE: "Value">}
+TOKEN: {<MIN: "Min">}
+TOKEN: {<MAX: "Max">}
+TOKEN: {<EXACTLY: "Exactly">}
+TOKEN: {<AND: "And" >}
+TOKEN: {<OR: "Or" >}
+TOKEN: {<NOT: "Not">}
+
+TOKEN: {<TRUE: "True">}
+TOKEN: {<FALSE: "False">}
+
+TOKEN: { <XSD_DATETIME: "xsd:dateTime" > }
+TOKEN: { <XSD_LONG: "xsd:long" > }
+TOKEN: { <XSD_STRING: "xsd:string" > }
+TOKEN: { <XSD_INT: "xsd:int" > }
+TOKEN: { <XSD_SHORT: "xsd:short" > }
+TOKEN: { <XSD_BOOLEAN: "xsd:boolean" > }
+TOKEN: { <XSD_DOUBLE: "xsd:double" > }
+TOKEN: { <XSD_FLOAT: "xsd:float"  > }
+TOKEN: { <XSD_TIME: "xsd:time"> }
+TOKEN: { <XSD_DURATION: "xsd:duration" > }
+TOKEN: { <RDF_XMLLITERAL: "rdf:XMLLiteral" > }
+
+/*
+TOKEN: { <XSD_NOTATION: "xsd:NOTATION" > }
+TOKEN: { <XSD_UNSIGNEDLONG: "xsd:unsignedLong" > }
+TOKEN: { <XSD_ANYSIMPLETYPE: "xsd:anySimpleType" > }
+TOKEN: { <XSD_HEXBINARY: "xsd:hexBinary" > }
+TOKEN: { <XSD_NONPOSITIVEINTEGER: "xsd:nonPositiveInteger" > }
+TOKEN: { <XSD_NONNEGATIVEINTEGER: "xsd:nonNegativeInteger" > }
+TOKEN: { <XSD_NORMALIZEDSTRING: "xsd:normalizedString" > }
+TOKEN: { <XSD_POSITIVEINTEGER: "xsd:positiveInteger" > }
+TOKEN: { <XSD_ENTITY: "xsd:ENTITY" > }
+TOKEN: { <XSD_LANGUAGE: "xsd:language" > }
+TOKEN: { <XSD_GMONTHDAY: "xsd:gMonthDay" > }
+TOKEN: { <XSD_ANYURI: "xsd:anyURI" > }
+TOKEN: { <XSD_NAME: "xsd:Name" > }
+TOKEN: { <XSD_GYEARMONTH: "xsd:gYearMonth" > }
+TOKEN: { <XSD_QNAME: "xsd:QName" > }
+TOKEN: { <XSD_NEGATIVEINTEGER: "xsd:negativeInteger" > }
+TOKEN: { <XSD_BASE64BINARY: "xsd:base64Binary" > }
+TOKEN: { <XSD_ID: "xsd:ID" > }
+TOKEN: { <XSD_TOKEN: "xsd:token" > }
+TOKEN: { <XSD_UNSIGNEDINT: "xsd:unsignedInt" > }
+TOKEN: { <XSD_IDREF: "xsd:IDREF" > }
+TOKEN: { <XSD_UNSIGNEDBYTE: "xsd:unsignedByte" > }
+TOKEN: { <XSD_GDAY: "xsd:gDay" > }
+TOKEN: { <XSD_GYEAR: "xsd:gYear" > }
+TOKEN: { <XSD_NCNAME: "xsd:NCName" > }
+TOKEN: { <XSD_BYTE: "xsd:byte" > }
+TOKEN: { <XSD_GMONTH: "xsd:gMonth" > }
+TOKEN: { <XSD_DECIMAL: "xsd:decimal" > }
+TOKEN: { <XSD_UNSIGNEDSHORT: "xsd:unsignedShort" > }
+TOKEN: { <XSD_NMTOKEN: "xsd:NMTOKEN" > }
+*/
+
+TOKEN:
+{
+  <STRING_LITERAL: "\"" (~["\""])* ("\"\"" (~["\""])*)* ("\\\"")* "\"" >
+| <QUOTED_NAME_LITERAL: "'" (~["'"])* ("''" (~["'"])*)* "'" >
+| <IDENTIFIER: <LETTER> (<LETTER> | <DIGIT> | "_" | "-" | "#" | "." | ":" | "/" )* | "'" (~["'"])* "'"> 
+| <INTEGER_LITERAL: (["-"])? (<DIGIT>)+ > 
+| <LONG_LITERAL: (["-"])? (<DIGIT>)+> 
+| <FLOAT_LITERAL:   (["-"])? (<DIGIT>)+ "." (<DIGIT>)+ (<EXPONENT>)?
+                  | (["-"])? "." (<DIGIT>)+ (<EXPONENT>)?
+                  | (["-"])? (<DIGIT>)+ <EXPONENT>
+                  | (["-"])? (<DIGIT>)+ (<EXPONENT>)? > 
+|
+  <#LETTER: [ "a"-"z", "A"-"Z" ]>
+|
+  <#DIGIT: ["0"-"9"] >
+| 
+  <#EXPONENT: ["e", "E"] (["+", "-"])? (<DIGIT>)+ >
+}
+
+SimpleNode expression() #FileExpression : {}
+{
+  md_expression() <EOF>
+  {
+     return jjtThis;
+  }
+}
+
+void md_expression() #MDExpression : {}
+{
+   ( md_namespace() )?
+   ( md_prefix() )?
+    md_element()
+}
+
+void md_namespace() #MDNamespace:
+{
+  String namespace;
+}
+{
+  <NAMESPACE> "=" namespace = string()
+  {
+    jjtThis.namespace = namespace;
+  }
+}
+
+void md_prefix() #MDPrefix :
+{
+  String prefix;
+}
+{
+  <PREFIX> "=" prefix = string()
+  {
+    jjtThis.prefix = prefix;
+  }
+}
+
+void md_element() #MDElement: {}
+{
+  <ELEMENT>
+}
+
+
+String identifier() :
+{
+  Token t;
+}
+{
+  t = <IDENTIFIER>
+
+  { return t.image; }
+}
+
+void literal() #Literal : {}
+{
+  (  integer_literal() 
+   | float_literal() 
+   | boolean_literal() 
+   | string_literal() 
+  )
+} 
+
+void integer_literal() #IntegerLiteral :
+{
+  Token t;
+}
+{
+  t = <INTEGER_LITERAL>
+
+  {
+    jjtThis.value = Integer.valueOf(token.image);
+  }
+}
+
+void float_literal() #FloatLiteral :
+{
+  Token t;
+}
+{
+  t = <FLOAT_LITERAL>
+
+  {
+    jjtThis.value = Float.valueOf(token.image);
+  }
+}
+
+
+String string() : 
+{
+  Token t;
+}
+{
+  t = <STRING_LITERAL> 
+
+  {
+    String s = t.image;
+    return s.substring(1, s.length() - 1);
+  }
+}
+
+void string_literal() #StringLiteral :
+{
+  String value;
+}
+{
+  value = string()
+
+  {
+    jjtThis.value = value;
+  }
+}
+
+void boolean_literal() #BooleanLiteral :
+{
+  boolean value;
+}
+{
+  ( <TRUE> { value = true; } | <FALSE> { value = false; } )
+
+  {
+    jjtThis.value = value;
+  }
+}
+
+int integer_value() :
+{
+  Token t;
+}
+{
+  t=<INTEGER_LITERAL>
+  {
+    return Integer.parseInt(t.image);
+  }
+}
+
+int cardinality_value() :
+{
+ int cardinality;
+}
+{
+  cardinality  = integer_value()
+
+  {
+    return cardinality;
+  }
+}
+  
+int datatype() :
+{
+  Token t;
+}
+{
+ (
+     t = <XSD_INT>
+   | t = <XSD_STRING> 
+   | t = <XSD_FLOAT>
+   | t = <XSD_DOUBLE>
+   | t = <XSD_SHORT> 
+   | t = <XSD_BOOLEAN>
+   | t = <XSD_TIME>
+   | t = <XSD_DATETIME>
+   | t = <XSD_DURATION>
+ )
+  {
+    return t.kind;
+  }
+}
+
+void language() #Language :
+{
+  String language;
+}
+{
+  <XML_LANG>  ( "=" ( "*" { language = "*"; }
+                     | language = string()
+                    )
+              )
+  {
+    jjtThis.language = language;
+  }
+}
+ 
+String quoted_name() : 
+{
+  Token t;
+}
+{
+  t = <QUOTED_NAME_LITERAL> 
+
+  {
+    String s = t.image;
+    return s.substring(1, s.length() - 1);
+  }
+}
