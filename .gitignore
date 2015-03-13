@@ -15,4 +15,5 @@ target/*
 .
 /target
 
+#Exlude precompiled Python files
 *.pyc
